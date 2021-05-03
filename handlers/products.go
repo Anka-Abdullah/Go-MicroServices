@@ -2,17 +2,16 @@
 //
 // Documentation for Product API
 //
-// Schemes: http
-// BasePAth: /
-// Version: 1.0.0
+// Schemes: http, https
+// BasePath: /
+// Version: 0.0.1
 //
-// Consumes:
-// - application/json
+//  Consumes:
+//  - application/json
 //
-// Produces:
-// - application/json
+//  Produces:
+//   - application/json
 //swagger:meta
-
 package handlers
 
 import (
