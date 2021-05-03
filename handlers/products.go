@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -17,50 +18,6 @@ type Products struct {
 func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
-
-// func (p *Products) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	if r.Method == http.MethodGet {
-// 		p.getProducts(w, r)
-// 		return
-// 	}
-
-// 	if r.Method == http.MethodPost {
-// 		p.addProduct(w, r)
-// 		return
-// 	}
-
-// 	if r.Method == http.MethodPut {
-// 		p.l.Println("PUT", r.URL.Path)
-
-// 		reg := regexp.MustCompile(`/([0-9])+`)
-// 		g := reg.FindAllStringSubmatch(r.URL.Path, -1)
-
-// 		if len(g) != 1 {
-// 			p.l.Println("Invalid URI more than one ID")
-// 			http.Error(w, "Invalid URI", http.StatusBadRequest)
-// 			return
-// 		}
-// 		if len(g[0]) != 1 {
-// 			p.l.Println("Invalid URI more than one capture group")
-
-// 			http.Error(w, "Invalid URI", http.StatusBadRequest)
-// 			return
-// 		}
-// 		idString := g[0][1]
-// 		id, err := strconv.Atoi(idString)
-// 		if err != nil {
-// 			p.l.Println("Invalid URI unable to convert to number", idString)
-// 			http.Error(w, "Invalid URL", http.StatusBadRequest)
-// 			return
-// 		}
-// 		p.updateProducts(id, w, r)
-// 		return
-// 	}
-
-//catch All
-// if no Method is satisfied return an error
-// 	w.WriteHeader(http.StatusMethodNotAllowed)
-// }
 
 func (p *Products) GetProducts(w http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle GET Products")
@@ -80,7 +37,7 @@ func (p *Products) AddProduct(w http.ResponseWriter, r *http.Request) {
 	data.AddProduct(&prod)
 }
 
-func (p *Products) UpdateProducts(id int, w http.ResponseWriter, r *http.Request) {
+func (p *Products) UpdateProducts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -115,7 +72,13 @@ func (p Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 			http.Error(w, "Error reading product", http.StatusBadRequest)
 			return
 		}
-
+		//validate the product
+		err = prod.Validate()
+		if err != nil {
+			p.l.Println("[ERROR] valdating product, err")
+			http.Error(w, fmt.Sprintf("Error valdating product : %s", err), http.StatusBadRequest)
+			return
+		}
 		//add the product to the context
 		ctx := context.WithValue(r.Context(), KeyProduct{}, prod)
 		r = r.WithContext(ctx)
